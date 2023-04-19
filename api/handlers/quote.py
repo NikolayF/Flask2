@@ -4,30 +4,22 @@ from api.models.quote import QuoteModel
 
 
 @app.route('/quotes', methods=["GET"])
+def quotes():
+    quotes = QuoteModel.query.all()
+    return [quote.to_dict() for quote in quotes]  # Возвращаем ВСЕ цитаты
 @app.route('/quotes/<int:quote_id>', methods=["GET"])
-@app.route('/authors/<int:author_id>/quotes', methods=["GET"])
-def get_quotes(author_id=None, quote_id=None):
-    """
-    Обрабатываем GET запросы
-    :param author_id: id автора
-    :param quote_id: id цитаты
-    :return: http-response(json, статус)
-    """
-    print(f"{author_id=} {quote_id=}")
-    if author_id is None and quote_id is None:  # Если запрос приходит по url: /quotes
-        quotes = QuoteModel.query.all()
-        return [quote.to_dict() for quote in quotes]  # Возвращаем ВСЕ цитаты
-
-    if author_id:  # Если запрос приходит по url: /authors/<int:author_id>/quotes
-        author = AuthorModel.query.get(author_id)
-        quotes = author.quotes.all()
-        return [quote.to_dict() for quote in quotes], 200  # Возвращаем все цитаты автора
-
-    # Если запрос приходит по url: /quotes/<int:quote_id>
+def quote_by_id(quote_id):
     quote = QuoteModel.query.get(quote_id)
     if quote is not None:
         return quote.to_dict(), 200
     return {"Error": "Quote not found"}, 404
+@app.route('/authors/<int:author_id>/quotes', methods=["GET"])
+def quotes_by_author(author_id):
+    author = AuthorModel.query.get(author_id)
+    quotes = author.quotes.all()
+    return [quote.to_dict() for quote in quotes], 200  # Возвращаем все цитаты автора
+
+
 
 
 @app.route('/authors/<int:author_id>/quotes', methods=["POST"])
